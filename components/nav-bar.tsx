@@ -16,7 +16,7 @@ import { useAuth } from '@/providers/session-provider';
 
 export default function Navbar() {
 	const router = useRouter();
-	const { logout, user, isAuthenticated } = useAuth();
+	const { logout, user, isAuthenticated, loading } = useAuth();
 
 	const handleLogin = () => {
 		router.push('/auth');
@@ -31,28 +31,30 @@ export default function Navbar() {
 			<Link href='/'>
 				<div className='text-2xl font-bold'>App Title</div>
 			</Link>
-			<div>
-				{!isAuthenticated ? (
-					<Button onClick={handleLogin}>Login</Button>
-				) : (
-					<DropdownMenu>
-						<DropdownMenuTrigger>
-							<Avatar>
-								<AvatarImage src='' alt='@shadcn' />
-								<AvatarFallback className='uppercase'>{user ? Array.from(user.email)[0] : '?'} </AvatarFallback>
-							</Avatar>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent>
-							<DropdownMenuLabel>My Account</DropdownMenuLabel>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem>Profile</DropdownMenuItem>
-							<DropdownMenuItem>Settings</DropdownMenuItem>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				)}
-			</div>
+			{!loading.current && (
+				<div>
+					{!isAuthenticated ? (
+						<Button onClick={handleLogin}>Login</Button>
+					) : (
+						<DropdownMenu>
+							<DropdownMenuTrigger>
+								<Avatar>
+									<AvatarImage src='' alt='@shadcn' />
+									<AvatarFallback className='uppercase'>{user ? Array.from(user.email)[0] : '?'} </AvatarFallback>
+								</Avatar>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent>
+								<DropdownMenuLabel>My Account</DropdownMenuLabel>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem>Profile</DropdownMenuItem>
+								<DropdownMenuItem>Settings</DropdownMenuItem>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					)}
+				</div>
+			)}
 		</nav>
 	);
 }

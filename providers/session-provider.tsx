@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, ReactNode, useState, useEffect, useContext } from 'react';
+import { createContext, ReactNode, useState, useEffect, useContext, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { getCookie, setCookie, deleteCookie } from 'cookies-next';
@@ -21,18 +21,19 @@ interface AuthContextType {
 	login: (token: string, user: User) => void;
 	logout: () => void;
 	isAuthenticated: boolean;
+	loading: React.MutableRefObject<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children, savedToken }: { children: ReactNode; savedToken: string | undefined }) {
+	const loading = useRef(true);
 	const [user, setUser] = useState<User | null>(null);
 	const [token, setToken] = useState<string | null>(null);
 	const router = useRouter();
 
 	useEffect(() => {
 		async function validate() {
-			console.log('Validating token...');
 			if (!savedToken) return;
 			try {
 				const res = await fetch('/api/auth/validate', {
@@ -50,10 +51,12 @@ export function AuthProvider({ children, savedToken }: { children: ReactNode; sa
 						setToken(null);
 					}
 				}
+				loading.current = false;
 			} catch (error) {
 				console.error(error);
 				setToken(null);
 				setUser(null);
+				loading.current = false;
 			}
 		}
 
@@ -89,7 +92,11 @@ export function AuthProvider({ children, savedToken }: { children: ReactNode; sa
 
 	const isAuthenticated = !!token;
 
-	return <AuthContext.Provider value={{ user, setUser, token, setToken, login, logout, isAuthenticated }}>{children}</AuthContext.Provider>;
+	return (
+		<AuthContext.Provider value={{ user, setUser, token, setToken, login, logout, isAuthenticated, loading }}>
+			{children}
+		</AuthContext.Provider>
+	);
 }
 
 export function useAuth() {
