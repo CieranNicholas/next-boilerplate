@@ -4,7 +4,6 @@ import { createContext, ReactNode, useState, useEffect, useContext } from 'react
 import { useRouter } from 'next/navigation';
 
 import { getCookie, setCookie, deleteCookie } from 'cookies-next';
-import Cookies from 'js-cookie';
 
 interface User {
 	id: string;
@@ -32,13 +31,33 @@ export function AuthProvider({ children, savedToken }: { children: ReactNode; sa
 	const router = useRouter();
 
 	useEffect(() => {
-		if (savedToken) {
-			const userInfo = getCookie('user');
-			if (userInfo) {
-				setUser(JSON.parse(userInfo));
+		async function validate() {
+			console.log('Validating token...');
+			if (!savedToken) return;
+			try {
+				const res = await fetch('/api/auth/validate', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+				});
+				const data = await res.json();
+				if (res.ok) {
+					const { user, isValid } = data;
+					if (isValid) {
+						setUser(user);
+						setToken(savedToken);
+					} else {
+						setUser(null);
+						setToken(null);
+					}
+				}
+			} catch (error) {
+				console.error(error);
+				setToken(null);
+				setUser(null);
 			}
-			setToken(savedToken);
 		}
+
+		validate();
 	}, []);
 
 	const login = (token: string, user: User) => {
@@ -59,7 +78,7 @@ export function AuthProvider({ children, savedToken }: { children: ReactNode; sa
 		const response = await fetch('/api/auth/logout', {
 			method: 'POST',
 		});
-		console.log(response.ok);
+
 		if (response.ok) {
 			router.refresh();
 			router.push('/');

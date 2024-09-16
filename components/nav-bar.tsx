@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -14,17 +13,10 @@ import {
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/providers/session-provider';
-import { useAuthValidation } from '@/hooks/useAuthValidation';
-
-import { deleteCookie } from 'cookies-next';
 
 export default function Navbar() {
 	const router = useRouter();
-	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	const { isValid } = useAuthValidation();
-	const { logout, user } = useAuth();
-
-	console.log(user);
+	const { logout, user, isAuthenticated } = useAuth();
 
 	const handleLogin = () => {
 		router.push('/auth');
@@ -40,7 +32,7 @@ export default function Navbar() {
 				<div className='text-2xl font-bold'>App Title</div>
 			</Link>
 			<div>
-				{!isValid ? (
+				{!isAuthenticated ? (
 					<Button onClick={handleLogin}>Login</Button>
 				) : (
 					<DropdownMenu>
